@@ -340,12 +340,21 @@ exports.createTransaksi = async (req, res) => {
         }
       };
 
-      const midtransResponse = await coreApi.charge(parameter);
+     const midtransResponse = await coreApi.charge(parameter);
+
+      const qrisUrl = midtransResponse.actions?.find(
+        action => action.name === 'generate-qr-code'
+      )?.url;
+    
+      if (!qrisUrl) {
+        throw new Error("Gagal mendapatkan URL QRIS dari Midtrans");
+      }
       
       response.data.qris_data = {
         qr_string: midtransResponse.qr_string,
         payment_code: midtransResponse.payment_code,
-        generated_image_url: midtransResponse.qr_code_url
+       // generated_image_url: midtransResponse.qr_code_url
+        generated_image_url: qrisUrl
       };
     }
     await t.commit();
