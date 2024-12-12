@@ -3,7 +3,7 @@ const TransaksiDetail = require('../models/transaksiDetailModel')
 const User = require('../models/userModel')
 const Cabang = require('../models/cabangModel')
 const Barang = require('../models/barangModel')
-const moment = require('moment')
+const moment = require('moment-timezone')
 const Op = require('sequelize')
 const db = require('../config/database')
 const {snap, coreApi} = require('../config/midtransConfig');
@@ -11,7 +11,7 @@ const {snap, coreApi} = require('../config/midtransConfig');
 exports.getTransaksi = async (req,res) =>{
     try {
         const transaksi = await Transaksi.findAll({
-            attributes:['uuid','totaljual','useruuid','tanggal','pembayaran'],
+            attributes:['uuid','totaljual','useruuid','tanggal','pembayaran','status_pembayaran','order_id'],
             include: [
               {
                 model: User,
@@ -20,21 +20,131 @@ exports.getTransaksi = async (req,res) =>{
                   {
                     model: Cabang,
                     attributes: ['uuid', 'namacabang'] 
-                  }
+                  },
+                  
                 ]
+              }
+            ],
+            include: [
+              {
+              model: TransaksiDetail,
+              attributes: ['uuid', 'transaksiuuid','baranguuid', 'jumlahbarang', 'harga','total'],
               }
             ]
         })
+        const calculateTransaksi = (TransaksiData) => {
+          return TransaksiData.length;
+        }
+        const totalTransaksi = calculateTransaksi(transaksi)
+        const transaksiSuccess = transaksi.filter(trans => trans.status_pembayaran === 'settlement');
+        const transaksiPending = transaksi.filter(trans => trans.status_pembayaran === 'pending');
+        const transaksiCashSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'cash');
+        const transaksiQrisSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'qris');
+        const transaksiCashPending = transaksiPending.filter(trans => trans.pembayaran === 'cash');
+        const transaksiQrisPending = transaksiPending.filter(trans => trans.pembayaran === 'qris');
+
+        const calculateTotal = (transactions) => {
+          return transactions.reduce((acc, trans) => acc + parseFloat(trans.totaljual || 0), 0);
+        };
+    
+        const totalPenjualanSuccess = calculateTotal(transaksiSuccess);
+        const totalPenjualanPending = calculateTotal(transaksiPending);
+        const totalPenjualanCashSuccess = calculateTotal(transaksiCashSuccess);
+        const totalPenjualanQrisSuccess = calculateTotal(transaksiQrisSuccess);
+        const totalPenjualanCashPending = calculateTotal(transaksiCashPending);
+        const totalPenjualanQrisPending = calculateTotal(transaksiQrisPending);
+
+        
         res.status(200).json({
             status:200,
             message: 'succes',
-            data: transaksi
+            totalPenjualanSuccess,
+      totalPenjualanPending,
+      totalPenjualanCashSuccess,
+      totalPenjualanQrisSuccess,
+      totalPenjualanCashPending,
+      totalPenjualanQrisPending,
+            data: 
+            transaksiSuccess,
+            transaksi,
+            totalTransaksi
         })
         
     } catch (error) {
         res.status(500).json(error.message)
     }
 }
+
+exports.getTransaksinotification = async (req,res) =>{
+  try {
+    const { order_id } = req.params; 
+    if (!order_id) {
+      return res.status(400).json({ status: 400, message: "Order ID is required" });
+    }
+    const transaksi = await Transaksi.findOne({
+      where: { order_id },
+      attributes: ['uuid', 'totaljual', 'useruuid', 'tanggal', 'pembayaran', 'status_pembayaran', 'order_id'],
+      include: [
+        {
+          model: User,
+          attributes: ['uuid', 'username', 'cabanguuid'],
+          include: [
+            {
+              model: Cabang,
+              attributes: ['uuid', 'namacabang'],
+            },
+          ],
+        },
+        {
+          model: TransaksiDetail,
+          attributes: ['uuid', 'transaksiuuid', 'baranguuid', 'jumlahbarang', 'harga', 'total'],
+        },
+      ],
+    });
+
+    if (!transaksi) {
+      return res.status(404).json({ status: 404, message: "Transaction not found" });
+    }
+
+    const transaksiData = [transaksi];
+    const transaksiSuccess = transaksiData.filter(trans => trans.status_pembayaran === 'settlement');
+    const transaksiPending = transaksiData.filter(trans => trans.status_pembayaran === 'pending');
+    const transaksiCashSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'cash');
+    const transaksiQrisSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'qris');
+    const transaksiCashPending = transaksiPending.filter(trans => trans.pembayaran === 'cash');
+    const transaksiQrisPending = transaksiPending.filter(trans => trans.pembayaran === 'qris');
+
+    const calculateTotal = (transactions) => {
+      return transactions.reduce((acc, trans) => acc + parseFloat(trans.totaljual || 0), 0);
+    };
+
+    const totalPenjualanSuccess = calculateTotal(transaksiSuccess);
+    const totalPenjualanPending = calculateTotal(transaksiPending);
+    const totalPenjualanCashSuccess = calculateTotal(transaksiCashSuccess);
+    const totalPenjualanQrisSuccess = calculateTotal(transaksiQrisSuccess);
+    const totalPenjualanCashPending = calculateTotal(transaksiCashPending);
+    const totalPenjualanQrisPending = calculateTotal(transaksiQrisPending);
+
+    res.status(200).json({
+      status: 200,
+      message: "Success",
+      totalPenjualanSuccess,
+      totalPenjualanPending,
+      totalPenjualanCashSuccess,
+      totalPenjualanQrisSuccess,
+      totalPenjualanCashPending,
+      totalPenjualanQrisPending,
+      data: {
+        transaksiSuccess,
+        transaksi,
+        totalTransaksi: transaksiData.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching transaction notification:", error);
+    res.status(500).json({ status: 500, message: error.message });
+  }
+};
 
 exports.getTransaksiByUuid = async (req,res) => {
     try {
@@ -57,59 +167,63 @@ exports.getTransaksiByUuid = async (req,res) => {
     }
 }
 
+
 exports.rekapHarianUser = async (req, res) => {
   try {
-      const tanggal = req.query.tanggal || undefined;
-      console.log('Tanggal Query:', tanggal);
-      if (tanggal && !moment(tanggal, 'YYYY-MM-DD', true).isValid()) {
-          return res.status(400).json({ message: 'Format tanggal tidak valid, gunakan YYYY-MM-DD' });
-      }
-      const startOfDay = moment.tz(tanggal, 'Asia/Jakarta').startOf('day').toDate();
-      const endOfDay = moment.tz(tanggal, 'Asia/Jakarta').endOf('day').toDate();
-      console.log('Start of Day:', startOfDay);
-      console.log('End of Day:', endOfDay);
-      const user = req.user;
-      if (!user) {
-          return res.status(401).json({ message: 'Anda tidak login' });
-      }
-      console.log('User UUID:', user.uuid);
-      const transaksi = await Transaksi.findAll({
-          where: {
-              useruuid: user.uuid,
-              
-          },
+    const tanggal = req.query.tanggal || undefined;
+    
+    if (tanggal && !moment(tanggal, 'YYYY-MM-DD', true).isValid()) {
+      return res.status(400).json({ message: 'Format tanggal tidak valid, gunakan YYYY-MM-DD' });
+    }
+    const startOfDay = moment.tz(tanggal, 'Asia/Jakarta').startOf('day');
+    const endOfDay = moment.tz(tanggal, 'Asia/Jakarta').endOf('day');
+
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({ message: 'Anda tidak login' });
+    }
+
+    const transaksi = await Transaksi.findAll({
+      where: {
+        useruuid: user.uuid,
+        tanggal: tanggal
+      },
+      include: [
+        {
+          model: TransaksiDetail,
+          required: false,
           include: [
-              {
-                  model: TransaksiDetail,
-                  createdAt: {
-                    [Op.gte]: startOfDay,
-                    [Op.lt]: endOfDay,
-                },
-                  include: [
-                      {
-                          model: Barang,
-                          attributes: ['namabarang', 'harga','createdAt'],
-                      },
-                  ],
-              },
-              {
-                  model: User,
-                  attributes: ['uuid', 'username', 'role', 'cabanguuid'],
-                  include: [
-                      {
-                          model: Cabang,
-                          attributes: ['namacabang', 'alamat'],
-                      },
-                  ],
-              },
+            {
+              model: Barang,
+              attributes: ['namabarang', 'harga'],
+            },
           ],
-      });
+        },
+        {
+          model: User,
+          attributes: ['uuid', 'username', 'role', 'cabanguuid'],
+          include: [
+            {
+              model: Cabang,
+              attributes: ['namacabang', 'alamat'],
+            },
+          ],
+        },
+      ],
+    });
 
-      if (!transaksi || transaksi.length === 0) {
-          return res.status(404).json({ message: 'Transaksi tidak ditemukan' });
-      }
+    console.log('Query Parameters:', {
+      useruuid: user.uuid,
+      startOfDay: startOfDay.format('YYYY-MM-DD HH:mm:ss'),
+      endOfDay: endOfDay.format('YYYY-MM-DD HH:mm:ss'),
+      requestedDate: tanggal
+    });
 
-      const transaksiSuccess = transaksi.filter(trans => trans.status_pembayaran === 'settlement');
+    if (!transaksi || transaksi.length === 0) {
+      return res.status(404).json({ message: 'Transaksi tidak ditemukan' });
+    }
+    const transaksiSuccess = transaksi.filter(trans => trans.status_pembayaran === 'settlement');
     const transaksiPending = transaksi.filter(trans => trans.status_pembayaran === 'pending');
     const transaksiCashSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'cash');
     const transaksiQrisSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'qris');
@@ -126,31 +240,24 @@ exports.rekapHarianUser = async (req, res) => {
     const totalPenjualanQrisSuccess = calculateTotal(transaksiQrisSuccess);
     const totalPenjualanCashPending = calculateTotal(transaksiCashPending);
     const totalPenjualanQrisPending = calculateTotal(transaksiQrisPending);
-    // const totalPenjualanSuccess = transaksiSuccess.reduce((acc, trans) => {
-    //   return acc + parseFloat(trans.totaljual || 0);
-    // }, 0);
 
-    // const totalPenjualanPending = transaksiPending.reduce((acc, trans) => {
-    //   return acc + parseFloat(trans.totaljual || 0);
-    // }, 0);
-      // const totalPenjualan = transaksi.reduce((acc, trans) => {
-      //   return acc + parseFloat(trans.totaljual || 0);
-      // }, 0);
-
-      res.status(200).json({
-          status: 200,
-          message: 'Data rekap harian berhasil diambil',
-          //totalPenjualan,
-          totalPenjualanSuccess,
-          totalPenjualanPending,
-          data: {
-            transaksiSuccess,
-            transaksiPending
-          }
-        })
+    res.status(200).json({
+      status: 200,
+      message: 'Data rekap harian berhasil diambil',
+      totalPenjualanSuccess,
+      totalPenjualanPending,
+      totalPenjualanCashSuccess,
+      totalPenjualanQrisSuccess,
+      totalPenjualanCashPending,
+      totalPenjualanQrisPending,
+      data: {
+        transaksiSuccess,
+        transaksiPending,
+      },
+    });
   } catch (error) {
-      console.error('Error in rekapHarianUser:', error.message);
-      res.status(500).json({ message: error.message });
+    console.error('Error in rekapHarianUser:', error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -203,7 +310,7 @@ exports.getTransaksiByUser = async (req, res) => {
 exports.getTransaksiCabang = async (req,res) => {
   try {
     const transaksi = await Transaksi.findAll({
-        attributes: ['uuid', 'totaljual', 'useruuid', 'tanggal', 'pembayaran'],
+        attributes: ['uuid', 'totaljual', 'useruuid', 'tanggal', 'pembayaran','status_pembayaran'],
         include: [
             {
                 model: User,
@@ -239,6 +346,7 @@ exports.getTransaksiCabang = async (req,res) => {
 
 
 //--------------TRANSAKSI STATUS NOTIFIKASI--------//
+//------------TRANSAKSI KHUSUS QRIS-------------//
 exports.createTransaksi = async (req, res) => {
   const t = await db.transaction();
 
@@ -340,7 +448,7 @@ exports.createTransaksi = async (req, res) => {
         }
       };
 
-     const midtransResponse = await coreApi.charge(parameter);
+      const midtransResponse = await coreApi.charge(parameter);
 
       const qrisUrl = midtransResponse.actions?.find(
         action => action.name === 'generate-qr-code'
@@ -367,6 +475,122 @@ exports.createTransaksi = async (req, res) => {
     });
   }
 };
+
+//---------------TRANSAKSI BANYAK OPSI-----------------
+// exports.createTransaksi = async (req, res) => {
+//   const t = await db.transaction();
+
+//   try {
+//     const { pembayaran, items } = req.body;
+//     const user = req.user;
+//     if (!user) {
+//       return res.status(401).json({
+//         status: false,
+//         message: "Silahkan login terlebih dahulu",
+//       });
+//     }
+//     // Validasi input
+//     if (!pembayaran || !items || !Array.isArray(items) || items.length === 0) {
+//       return res.status(400).json({
+//         status: false,
+//         message: "Data tidak lengkap atau format tidak sesuai",
+//       });
+//     }
+
+//     // Validasi barang
+//     const barangUuids = items.map((item) => item.baranguuid);
+//     const barangList = await Barang.findAll({
+//       where: { uuid: barangUuids },
+//     });
+
+//     const barangMap = new Map(barangList.map((barang) => [barang.uuid, barang]));
+//     let totaljual = 0;
+
+//     const validatedItems = items.map((item) => {
+//       const barang = barangMap.get(item.baranguuid);
+//       if (!barang) {
+//         throw new Error(`Barang dengan UUID ${item.baranguuid} tidak ditemukan`);
+//       }
+//       const total = parseFloat(barang.harga) * item.jumlahbarang;
+//       totaljual += total;
+//       return {
+//         ...item,
+//         harga: barang.harga,
+//         total,
+//       };
+//     });
+
+//     // table transaksi
+//     const orderId = `ORDER-${new Date().getTime()}`;
+//     const transaksi = await Transaksi.create(
+//       {
+//         order_id: orderId,
+//         useruuid: user.uuid,
+//         totaljual,
+//         pembayaran,
+//         status_pembayaran: pembayaran === 'cash' ? 'settlement' : 'pending',
+//         tanggal: new Date(),
+//       },
+//       { transaction: t }
+      
+//     );
+
+//     // table detail transaksi
+//     const transaksiDetails = await Promise.all(
+//       validatedItems.map((item) =>
+//         TransaksiDetail.create(
+//           {
+//             transaksiuuid: transaksi.uuid,
+//             baranguuid: item.baranguuid,
+//             jumlahbarang: item.jumlahbarang,
+//             harga: item.harga,
+//             total: item.total,
+//           },
+//           { transaction: t }
+//         )
+//       )
+//     );
+
+//     let response = {
+//       status: true,
+//       message: "Transaksi berhasil dibuat",
+//       data: {
+//         transaksi: {
+//           ...transaksi.toJSON(),
+//           details: transaksiDetails,
+//         },
+//       },
+//     };
+
+//     // Integrasi dengan Midtrans (hanya untuk QRIS)
+//     if (pembayaran === 'qris') {
+//       const parameter = {
+//         transaction_details: {
+//           order_id: transaksi.order_id,
+//           gross_amount: totaljual,
+//         },
+//         customer_details: {
+//           first_name: user.username,
+//           email: user.email,
+//         },
+//         payment_type: 'qris',
+//       };
+
+//       const midtransResponse = await snap.createTransaction(parameter);
+//       response.data.qris_url = midtransResponse.redirect_url;
+//     }
+
+//     await t.commit();
+//     return res.status(201).json(response);
+//   } catch (error) {
+//     await t.rollback();
+//     return res.status(500).json({
+//       status: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
 
 
 exports.updateTransaksi = async (req, res) => {
