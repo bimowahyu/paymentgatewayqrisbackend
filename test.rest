@@ -171,15 +171,18 @@ get http://localhost:5000/laporan
 
 //api for superadmin
 ###
-get http://localhost:5000/gettransaksi
+get http://localhost:5000/transaksi/226c33b1-97cc-48d7-b35b-954d339afacc
 
 //api for superadmin(cabang)
 ###
-get http://localhost:5000/gettransaksicabang
+get http://localhost:5000/gettransaksi
 
 //api for rekap user
 ###
 get http://localhost:5000/gettransaksiuser
+
+###
+get http://localhost:5000/gettransaksinotification/ORDER-1734016405945
 
 ###
 delete http://localhost:5000/deletetransaksi/02008ce6-aaab-4335-bed4-ee1e287e6aa8
