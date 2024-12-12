@@ -48,6 +48,7 @@ get http://localhost:5000/me
 ###
 delete http://localhost:5000/logout
 
+
 ###
 delete http://localhost:5000/deletecabang/d93ef91c-6be9-492f-bf24-5083d31f24a9
 ###
@@ -60,6 +61,13 @@ Content-Type: application/json
     "latitude":"-7.003011",
     "longitude":"110.411597"
 }
+
+###
+get http://localhost:5000/cabang
+
+
+###
+get http://localhost:5000/kategori
 
 ###
 post http://localhost:5000/createkategori

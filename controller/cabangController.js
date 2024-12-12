@@ -5,9 +5,16 @@ const getCabang = async(req,res) => {
         const response = await Cabang.findAll({
             attributes:['uuid','namacabang','alamat','koordinat','createdAt','updatedAt']
              })
+
+             const calculateTotalCabang = (cabangData) => {
+                return cabangData.length;
+            };
+            const totalCabang = calculateTotalCabang(response);
+
     res.status(200).json({
         status:200,
-        message:'succes get data'   ,
+        message:'succes get data',
+        totalcabang: totalCabang,
         data:response
     })
     } catch (error) {

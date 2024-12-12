@@ -5,9 +5,9 @@ const { Op } = require('sequelize');
 exports.verifyMidtransSignature = (req, res, next) => {
   try {
     //testing key
-    const serverKey = "SB-Mid-server-uQ-rqRytL5AJcWTQFfrjWQ_l";
+   // const serverKey = "SB-Mid-server-uQ-rqRytL5AJcWTQFfrjWQ_l";
    //prod
-  
+    const serverKey = "Mid-server-zVqco_ZtohAk3FIhaMCdXZbz";
     if (!serverKey) {
       console.error('MIDTRANS_SERVER_KEY belum diatur dalam environment');
       return res.status(500).json({

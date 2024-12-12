@@ -26,7 +26,7 @@ const Transaksi = sequelize.define('Transaksi', {
     allowNull: false,
   },
   tanggal: {
-    type: DataTypes.DATE,
+    type: DataTypes.DATEONLY,
     defaultValue: DataTypes.NOW,
     allowNull: false,
   },

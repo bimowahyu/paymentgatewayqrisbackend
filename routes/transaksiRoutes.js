@@ -6,7 +6,8 @@ const{getTransaksi,
     rekapHarianUser,
     createTransaksi,
     updateTransaksi,
-    deleteTransaksi
+    deleteTransaksi,
+    getTransaksinotification
      
 } = require('../controller/transaksiController')
 const { verifyUser, adminOnly } = require('../middleware/userMiddleware')
@@ -16,7 +17,7 @@ const { verifyMidtransSignature , midtransNotification} = require ('../config/mi
 const router = express.Router()
 
 router.get('/gettransaksi',verifyUser,getTransaksi)
-router.get('/gettransaksicabang',adminOnly,getTransaksiCabang)
+router.get('/gettransaksicabang',verifyUser,getTransaksiCabang)
 router.get('/gettransaksiuser',verifyUser,getTransaksiByUser)
 router.get('/transaksi/:uuid',getTransaksiByUuid)
 router.get('/rekapharianuser/:tanggal?',verifyUser, rekapHarianUser)
@@ -24,5 +25,6 @@ router.post('/createtransaksi',verifyUser,createTransaksi)
 router.post('/midtrans-notification', verifyMidtransSignature, midtransNotification);
 router.put('/updatetransaksi/:uuid',verifyUser,updateTransaksi)
 router.delete('/deletetransaksi/:uuid',adminOnly,deleteTransaksi)
+router.get('/gettransaksinotification/:order_id',verifyUser,getTransaksinotification)
 
 module.exports = router;
