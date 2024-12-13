@@ -346,7 +346,7 @@ exports.getTransaksiCabang = async (req,res) => {
 
 
 //--------------TRANSAKSI STATUS NOTIFIKASI--------//
-//------------TRANSAKSI KHUSUS QRIS-------------//
+//------------TRANSAKSI-------------//
 exports.createTransaksi = async (req, res) => {
   const t = await db.transaction();
 
@@ -562,7 +562,7 @@ exports.createTransaksi = async (req, res) => {
 //       },
 //     };
 
-//     // Integrasi dengan Midtrans (hanya untuk QRIS)
+//     // Integrasi dengan Midtrans
 //     if (pembayaran === 'qris') {
 //       const parameter = {
 //         transaction_details: {
@@ -575,9 +575,36 @@ exports.createTransaksi = async (req, res) => {
 //         },
 //         payment_type: 'qris',
 //       };
-
 //       const midtransResponse = await snap.createTransaction(parameter);
 //       response.data.qris_url = midtransResponse.redirect_url;
+//     } else if (pembayaran === 'credit_card') {
+//       const parameter = {
+//         transaction_details: {
+//           order_id: transaksi.order_id,
+//           gross_amount: totaljual,
+//         },
+//         customer_details: {
+//           first_name: user.username,
+//           email: user.email,
+//         },
+//         payment_type: 'credit_card',
+//       };
+//       const midtransResponse = await snap.createTransaction(parameter);
+//       response.data.payment_url = midtransResponse.redirect_url;
+//     } else if (pembayaran === 'bank_transfer') {
+//       const parameter = {
+//         transaction_details: {
+//           order_id: transaksi.order_id,
+//           gross_amount: totaljual,
+//         },
+//         customer_details: {
+//           first_name: user.username,
+//           email: user.email,
+//         },
+//         payment_type: 'bank_transfer',
+//       };
+//       const midtransResponse = await snap.createTransaction(parameter);
+//       response.data.payment_url = midtransResponse.redirect_url;
 //     }
 
 //     await t.commit();
