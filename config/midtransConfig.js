@@ -1,3 +1,4 @@
+require('dotenv').config();
 const midtransClient = require("midtrans-client");
 
 
@@ -5,20 +6,20 @@ const snap = new midtransClient.Snap({
   isProduction: true, // Ubah ke true jika production
 
   //testing key
-  // serverKey: "SB-Mid-server-uQ-rqRytL5AJcWTQFfrjWQ_l",
-  // clientKey: "SB-Mid-client-z33ZOawCRIExlzNZ",
+  // serverKey: process.env.SERVERKEY,
+  // clientKey: process.env.CLIENTKEY,
   //prod
-  serverKey: "Mid-server-zVqco_ZtohAk3FIhaMCdXZbz",
-  clientKey: "Mid-client-Kc3eY1dYY7YoVrMX"
+  //serverKey: process.env.SERVERKEYPROD,
+  //clientKey: process.env.CLIENTKEYPROD
 });
 
 const coreApi = new midtransClient.CoreApi({
-  isProduction: true,
-  //serverKey: "SB-Mid-server-uQ-rqRytL5AJcWTQFfrjWQ_l",
-//  clientKey: "SB-Mid-client-z33ZOawCRIExlzNZ",
+  isProduction: false,
+  serverKey: process.env.SERVERKEY,
+ clientKey: process.env.CLIENTKEY,
   //prod
-   serverKey: "Mid-server-zVqco_ZtohAk3FIhaMCdXZbz",
-   clientKey: "Mid-client-Kc3eY1dYY7YoVrMX"
+  //  serverKey: process.env.SERVERKEYPROD,
+  //  clientKey: process.env.CLIENTKEYPROD
 });
 
 
