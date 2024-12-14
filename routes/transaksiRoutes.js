@@ -10,7 +10,7 @@ const{getTransaksi,
     getTransaksinotification
      
 } = require('../controller/transaksiController')
-const { verifyUser, adminOnly } = require('../middleware/userMiddleware')
+const { verifyUser, adminOnly,superAdminOnly } = require('../middleware/userMiddleware')
 const { verifyMidtransSignature , midtransNotification} = require ('../config/midtransSignature')
 //const { midtransNotification } = require('../config/midtransNotification')
 

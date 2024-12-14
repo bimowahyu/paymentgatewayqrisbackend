@@ -13,7 +13,7 @@ const router = express.Router()
 
 router.get('/cabang',verifyUser, getCabang)
 router.get('/cabang/:uuid', verifyUser,getCabangByUuid)
-router.post('/createcabang',superAdminOnly, createCabang)
+router.post('/createcabang',verifyUser,superAdminOnly, createCabang)
 router.put('/updatecabang/:uuid',superAdminOnly, updateCabang)
 router.delete('/deletecabang/:uuid',superAdminOnly, deleteCabang)
 

@@ -8,72 +8,125 @@ const Op = require('sequelize')
 const db = require('../config/database')
 const {snap, coreApi} = require('../config/midtransConfig');
 
-exports.getTransaksi = async (req,res) =>{
-    try {
-        const transaksi = await Transaksi.findAll({
-            attributes:['uuid','totaljual','useruuid','tanggal','pembayaran','status_pembayaran','order_id'],
-            include: [
-              {
-                model: User,
-                attributes: ['uuid', 'username', 'cabanguuid'],
-                include: [
-                  {
-                    model: Cabang,
-                    attributes: ['uuid', 'namacabang'] 
-                  },
-                  
-                ]
-              }
-            ],
-            include: [
-              {
-              model: TransaksiDetail,
-              attributes: ['uuid', 'transaksiuuid','baranguuid', 'jumlahbarang', 'harga','total'],
-              }
-            ]
-        })
-        const calculateTransaksi = (TransaksiData) => {
-          return TransaksiData.length;
-        }
-        const totalTransaksi = calculateTransaksi(transaksi)
-        const transaksiSuccess = transaksi.filter(trans => trans.status_pembayaran === 'settlement');
-        const transaksiPending = transaksi.filter(trans => trans.status_pembayaran === 'pending');
-        const transaksiCashSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'cash');
-        const transaksiQrisSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'qris');
-        const transaksiCashPending = transaksiPending.filter(trans => trans.pembayaran === 'cash');
-        const transaksiQrisPending = transaksiPending.filter(trans => trans.pembayaran === 'qris');
+//----------------PAGINATION TRANSAKSI--------------
+// exports.getTransaksi = async (req,res) => {
+//   try {
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 10; 
+//     const offset = (page - 1) * limit;
+//     const { count, rows: transaksi } = await Transaksi.findAndCountAll({
+//       attributes: ['uuid', 'totaljual', 'useruuid', 'tanggal', 'pembayaran', 'status_pembayaran', 'order_id'],
+//       include: [
+//         {
+//           model: User,
+//           attributes: ['uuid', 'username', 'cabanguuid'],
+//           include: [
+//             {
+//               model: Cabang,
+//               attributes: ['uuid', 'namacabang']
+//             }
+//           ]
+//         },
+//         {
+//           model: TransaksiDetail,
+//           attributes: ['uuid', 'transaksiuuid', 'baranguuid', 'jumlahbarang', 'harga', 'total']
+//         }
+//       ],
+//       limit: parseInt(limit), 
+//       offset: parseInt(offset), 
+//       distinct: true
+//     });
+//     const totalPages = Math.ceil(count / limit);
+//     res.status(200).json({
+//       status: 200,
+//       message: 'success',
+//       data: transaksi,
+//       totalData: count,
+//       currentPage: parseInt(page),
+//       totalPages
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// }
 
-        const calculateTotal = (transactions) => {
+//-----------------TANPA PAGINATION
+exports.getTransaksi = async (req, res) => {
+  try {
+      const userRole = req.user.role; 
+      const userCabangUuid = req.user.cabanguuid; 
+
+      const whereClause = userRole === 'admin' 
+      ? { '$User.Cabang.uuid$': userCabangUuid } 
+      : {};
+
+      const transaksi = await Transaksi.findAll({
+          attributes: ['uuid', 'totaljual', 'useruuid', 'tanggal', 'pembayaran', 'status_pembayaran', 'order_id','createdAt'],
+          where: whereClause,
+          include: [
+              {
+                  model: User,
+                  attributes: ['uuid', 'username', 'cabanguuid'],
+                  include: [
+                      {
+                          model: Cabang,
+                          attributes: ['uuid', 'namacabang']
+                      }
+                  ]
+              },
+              {
+                  model: TransaksiDetail,
+                  attributes: ['uuid', 'transaksiuuid', 'baranguuid', 'jumlahbarang', 'harga', 'total','createdAt'],
+                  include:[{
+                    model: Barang, 
+                      attributes: ['namabarang']
+                    }
+                  ]
+              }
+          ]
+      });
+
+      
+      const calculateTransaksi = (TransaksiData) => TransaksiData.length;
+
+      const totalTransaksi = calculateTransaksi(transaksi);
+      const transaksiSuccess = transaksi.filter(trans => trans.status_pembayaran === 'settlement');
+      const transaksiPending = transaksi.filter(trans => trans.status_pembayaran === 'pending');
+      const transaksiCashSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'cash');
+      const transaksiQrisSuccess = transaksiSuccess.filter(trans => trans.pembayaran === 'qris');
+      const transaksiCashPending = transaksiPending.filter(trans => trans.pembayaran === 'cash');
+      const transaksiQrisPending = transaksiPending.filter(trans => trans.pembayaran === 'qris');
+
+      const calculateTotal = (transactions) => {
           return transactions.reduce((acc, trans) => acc + parseFloat(trans.totaljual || 0), 0);
-        };
-    
-        const totalPenjualanSuccess = calculateTotal(transaksiSuccess);
-        const totalPenjualanPending = calculateTotal(transaksiPending);
-        const totalPenjualanCashSuccess = calculateTotal(transaksiCashSuccess);
-        const totalPenjualanQrisSuccess = calculateTotal(transaksiQrisSuccess);
-        const totalPenjualanCashPending = calculateTotal(transaksiCashPending);
-        const totalPenjualanQrisPending = calculateTotal(transaksiQrisPending);
+      };
 
-        
-        res.status(200).json({
-            status:200,
-            message: 'succes',
-            totalPenjualanSuccess,
-      totalPenjualanPending,
-      totalPenjualanCashSuccess,
-      totalPenjualanQrisSuccess,
-      totalPenjualanCashPending,
-      totalPenjualanQrisPending,
-            data: 
-            transaksiSuccess,
-            transaksi,
-            totalTransaksi
-        })
-        
-    } catch (error) {
-        res.status(500).json(error.message)
-    }
-}
+      const totalPenjualanSuccess = calculateTotal(transaksiSuccess);
+      const totalPenjualanPending = calculateTotal(transaksiPending);
+      const totalPenjualanCashSuccess = calculateTotal(transaksiCashSuccess);
+      const totalPenjualanQrisSuccess = calculateTotal(transaksiQrisSuccess);
+      const totalPenjualanCashPending = calculateTotal(transaksiCashPending);
+      const totalPenjualanQrisPending = calculateTotal(transaksiQrisPending);
+
+      res.status(200).json({
+          status: 200,
+          message: 'Success',
+          totalPenjualanSuccess: calculateTotal(transaksiSuccess),
+            totalPenjualanPending: calculateTotal(transaksiPending),
+            totalPenjualanCashSuccess: calculateTotal(transaksiCashSuccess),
+            totalPenjualanQrisSuccess: calculateTotal(transaksiQrisSuccess),
+            totalPenjualanCashPending: calculateTotal(transaksiCashPending),
+            totalPenjualanQrisPending: calculateTotal(transaksiQrisPending),
+            transaksi ,
+          
+          totalTransaksi
+      });
+
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+};
+
 
 exports.getTransaksinotification = async (req,res) =>{
   try {
@@ -309,17 +362,32 @@ exports.getTransaksiByUser = async (req, res) => {
 
 exports.getTransaksiCabang = async (req,res) => {
   try {
-    const transaksi = await Transaksi.findAll({
-        attributes: ['uuid', 'totaljual', 'useruuid', 'tanggal', 'pembayaran','status_pembayaran'],
-        include: [
+    const user = req.user;
+    if (user.role !== "admin" || "superadmin") {
+      return res.status(403).json({
+        status: 403,
+        message: "Access forbidden. Only admins can access this data.",
+      });
+    }
+    if (!user.cabanguuid) {
+      return res.status(400).json({
+        status: 400,
+        message: "Cabang UUID is missing for this admin.",
+      });
+    }
+
+  const transaksi = await Transaksi.findAll({
+      where: { "$User.cabanguuid$": user.cabanguuid },
+      attributes: ["uuid", "totaljual", "useruuid", "tanggal", "pembayaran", "status_pembayaran","createdAt"],
+      include: [
+        {
+          model: User,
+          attributes: ["uuid", "username", "cabanguuid"],
+          include: [
             {
-                model: User,
-                attributes: ['uuid', 'username', 'cabanguuid'],
-                include: [
-                    {
-                        model: Cabang,
-                        attributes: ['uuid', 'namacabang'],
-                        required: false
+              model: Cabang,
+              attributes: ["uuid", "namacabang"],
+              required: true,
                     }
                 ]
             }
@@ -357,6 +425,12 @@ exports.createTransaksi = async (req, res) => {
       return res.status(401).json({
         status: false,
         message: "Silahkan login terlebih dahulu",
+      });
+    }
+    if (user.role !== 'kasir') {
+      return res.status(403).json({
+        status: false,
+        message: "Anda tidak memiliki akses untuk melakukan transaksi",
       });
     }
     if (!pembayaran || !items || !Array.isArray(items) || items.length === 0) {
@@ -489,6 +563,12 @@ exports.createTransaksi = async (req, res) => {
 //         message: "Silahkan login terlebih dahulu",
 //       });
 //     }
+        // if (user.role !== 'kasir') {
+        //   return res.status(403).json({
+        //     status: false,
+        //     message: "Anda tidak memiliki akses untuk melakukan transaksi",
+        //   });
+        // }
 //     // Validasi input
 //     if (!pembayaran || !items || !Array.isArray(items) || items.length === 0) {
 //       return res.status(400).json({
