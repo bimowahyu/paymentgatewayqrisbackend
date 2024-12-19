@@ -24,7 +24,7 @@ router.get('/rekapharianuser/:tanggal?',verifyUser, rekapHarianUser)
 router.post('/createtransaksi',verifyUser,createTransaksi)
 router.post('/midtrans-notification', verifyMidtransSignature, midtransNotification);
 router.put('/updatetransaksi/:uuid',verifyUser,updateTransaksi)
-router.delete('/deletetransaksi/:uuid',adminOnly,deleteTransaksi)
+router.delete('/deletetransaksi/:uuid',verifyUser,superAdminOnly,deleteTransaksi)
 router.get('/gettransaksinotification/:order_id',verifyUser,getTransaksinotification)
 
 module.exports = router;

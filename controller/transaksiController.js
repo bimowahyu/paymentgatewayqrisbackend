@@ -112,11 +112,11 @@ exports.getTransaksi = async (req, res) => {
           status: 200,
           message: 'Success',
           totalPenjualanSuccess: calculateTotal(transaksiSuccess),
-            totalPenjualanPending: calculateTotal(transaksiPending),
+            //totalPenjualanPending: calculateTotal(transaksiPending),
             totalPenjualanCashSuccess: calculateTotal(transaksiCashSuccess),
             totalPenjualanQrisSuccess: calculateTotal(transaksiQrisSuccess),
-            totalPenjualanCashPending: calculateTotal(transaksiCashPending),
-            totalPenjualanQrisPending: calculateTotal(transaksiQrisPending),
+            // totalPenjualanCashPending: calculateTotal(transaksiCashPending),
+            // totalPenjualanQrisPending: calculateTotal(transaksiQrisPending),
             transaksi ,
           
           totalTransaksi

@@ -38,9 +38,26 @@ post http://localhost:5000/login
 Content-Type: application/json
 
 {
+    "username": "admin",
+    "password": "12345"
+}
+###
+post http://localhost:5000/login
+Content-Type: application/json
+
+{
+    "username": "superadmin",
+    "password": "12345"
+}
+###
+post http://localhost:5000/login
+Content-Type: application/json
+
+{
     "username": "kasir",
     "password": "12345"
 }
+
 
 ###
 get http://localhost:5000/me
@@ -166,7 +183,12 @@ Content-Type: application/json
 get http://localhost:5000/getuser
 
 ###
-get http://localhost:5000/laporan
+get http://localhost:5000/laporan?month=2024-12
+
+###
+get http://localhost:5000/chartlaporan
+###
+get http://localhost:5000/laporandetail
 
 
 //api for superadmin
@@ -195,4 +217,4 @@ delete http://localhost:5000/deletetransaksi/02008ce6-aaab-4335-bed4-ee1e287e6aa
 get http://localhost:5000/rekapharianuser?tanggal=2024-12-04
 
 ###
-get http://localhost:5000/rekapharianuser?tanggal=2024-12-15
+get http://localhost:5000/rekapharianuser?tanggal=2024-12-19
