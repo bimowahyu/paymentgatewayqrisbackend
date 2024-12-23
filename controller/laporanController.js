@@ -5,6 +5,9 @@ const User = require('../models/userModel');
 const Barang = require('../models/barangModel');
 const Cabang = require('../models/cabangModel');
 const Kategori = require('../models/kategoriModel')
+const XLSX = require('xlsx');
+const fs = require('fs');
+const path = require('path');
 
 // Shared function untuk konsistensi filter
 const getSuccessWhereConditions = (additionalConditions = {}) => {
@@ -89,6 +92,113 @@ exports.chartLaporan = async (req, res) => {
     });
   }
 };
+
+
+exports.exportLaporan = async (req, res) => {
+  try {
+    const { startDate, endDate, month, pembayaran, cabanguuid } = req.query;
+    const user = req.user;
+
+    if (!['superadmin', 'admin'].includes(user.role)) {
+      return res.status(403).json({
+        status: false,
+        message: "Unauthorized: Access restricted"
+      });
+    }
+
+    let start = startDate ? new Date(startDate) : null;
+    let end = endDate ? new Date(endDate) : null;
+
+    if (month) {
+      const [year, monthNumber] = month.split('-');
+      start = new Date(year, monthNumber - 1, 1);
+      end = new Date(year, monthNumber, 0);
+    }
+
+    let whereConditions = getSuccessWhereConditions();
+    if (start && end) {
+      whereConditions.tanggal = {
+        [Op.between]: [start, end]
+      };
+    }
+
+    if (pembayaran) {
+      whereConditions.pembayaran = pembayaran;
+    }
+
+    let cabangFilter = {};
+    if (user.role === 'admin') {
+      cabangFilter.uuid = user.cabanguuid;
+    } else if (cabanguuid) {
+      cabangFilter.uuid = cabanguuid;
+    }
+
+    const salesData = await Transaksi.findAll({
+      attributes: ['uuid', 'totaljual', 'useruuid', 'tanggal', 'pembayaran'],
+      where: whereConditions,
+      include: [
+        {
+          model: User,
+          attributes: ['username'],
+          where: cabangFilter.uuid ? { cabanguuid: cabangFilter.uuid } : {},
+          include: [{
+            model: Cabang,
+            attributes: ['namacabang'],
+            where: cabangFilter
+          }]
+        },
+        {
+          model: TransaksiDetail,
+          include: [{
+            model: Barang,
+            attributes: ['namabarang', 'kategoriuuid', 'harga'],
+            include: {
+              model: Kategori,
+              attributes: ['namakategori']
+            }
+          }]
+        }
+      ]
+    });
+
+    const rows = [];
+    salesData.forEach(transaksi => {
+      const cabangName = transaksi.User?.Cabang?.namacabang || 'Tidak Ada Cabang';
+      transaksi.TransaksiDetails.forEach(detail => {
+        rows.push({
+          Cabang: cabangName,
+          Barang: detail.Barang.namabarang,
+          Kategori: detail.Barang.Kategori?.namakategori || 'Tidak Ada Kategori',
+          "Harga Satuan": detail.Barang.harga,
+          "Total Terjual": detail.jumlahbarang,
+          "Total Penjualan": detail.total
+        });
+      });
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Penjualan");
+
+    const filePath = path.join(__dirname, '../temp', `Laporan_Penjualan_${Date.now()}.xlsx`);
+    XLSX.writeFile(workbook, filePath);
+
+    res.download(filePath, (err) => {
+      if (err) {
+        console.error(err);
+      }
+      fs.unlinkSync(filePath);
+    });
+  } catch (error) {
+    console.error('Error in exportLaporan:', error);
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
 
 exports.laporan = async (req, res) => {
   try {

@@ -3,6 +3,7 @@ const TransaksiDetail = require('../models/transaksiDetailModel')
 const User = require('../models/userModel')
 const Cabang = require('../models/cabangModel')
 const Barang = require('../models/barangModel')
+const BarangCabang = require('../models/BarangCabang')
 const moment = require('moment-timezone')
 const Op = require('sequelize')
 const db = require('../config/database')
@@ -414,6 +415,7 @@ exports.getTransaksiCabang = async (req,res) => {
 
 
 //--------------TRANSAKSI STATUS NOTIFIKASI--------//
+
 //------------TRANSAKSI-------------//
 exports.createTransaksi = async (req, res) => {
   const t = await db.transaction();

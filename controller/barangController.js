@@ -1,8 +1,193 @@
 const Barang = require('../models/barangModel');
+const BarangCabang = require('../models/BarangCabang')
 const Kategori = require('../models/kategoriModel')
 const { writeFile, unlink } = require('fs').promises;
 const fs = require('fs');
 const path = require('path');
+const Cabang = require('../models/cabangModel');
+
+const getBarangCabangAdmin = async (req, res) => {
+    try {
+      const response = await BarangCabang.findAll({
+        attributes: ["baranguuid", "cabanguuid"],
+        include: [
+          {
+            model: Barang,
+            attributes: ["uuid", "namabarang", "harga", "foto", "kategoriuuid"],
+            include: [
+              {
+                model: Kategori,
+                attributes: ["uuid", "namakategori"],
+              },
+            ],
+          },
+          {
+            model: Cabang,
+            attributes: ["uuid", "namacabang"],
+          },
+        ],
+      });
+  
+      res.status(200).json({
+        status: true,
+        message: "Berhasil mendapatkan data barang cabang",
+        data: response,
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  };
+
+  
+const getBarangCabang = async(req, res) => {
+    try {
+        const user = req.user; 
+
+        if (!user) {
+            return res.status(401).json({
+                status: false,
+                message: "Silahkan login terlebih dahulu"
+            });
+        }
+
+        const response = await BarangCabang.findAll({
+            where: {
+                cabanguuid: user.cabanguuid 
+            },
+            attributes: ['baranguuid', 'cabanguuid'],
+            include: [
+                {
+                    model: Barang,
+                    attributes: ['uuid', 'namabarang', 'harga', 'foto', 'kategoriuuid', 'createdAt'],
+                    include: [{
+                        model: Kategori,
+                        attributes: ['uuid', 'namakategori']
+                    }]
+                },
+                {
+                    model: Cabang,
+                    attributes: ['uuid', 'namacabang']
+                }
+            ]
+        });
+
+        res.status(200).json({
+            status: true,
+            message: 'Berhasil mendapatkan data barang cabang',
+            data: response
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: error.message
+        });
+    }
+};
+
+const addBarangToCabang = async (req, res) => {
+    try {
+        const { baranguuid, cabanguuid } = req.body; 
+
+        const barang = await Barang.findOne({ where: { uuid: baranguuid } });
+        const cabang = await Cabang.findOne({ where: { uuid: cabanguuid } });
+
+        if (!barang || !cabang) {
+            return res.status(400).json({
+                status: false,
+                message: "Barang atau Cabang tidak ditemukan"
+            });
+        }
+
+    
+        const newBarangCabang = await BarangCabang.create({
+            baranguuid,
+            cabanguuid
+        });
+
+        res.status(201).json({
+            status: true,
+            message: 'Barang berhasil ditambahkan ke cabang',
+            data: newBarangCabang
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: error.message
+        });
+    }
+};
+
+const updateBarangCabang = async (req, res) => {
+    try {
+        const { baranguuid, cabanguuid } = req.body;
+
+        // Cek apakah data sudah ada
+        const barangCabang = await BarangCabang.findOne({
+            where: {
+                baranguuid,
+                cabanguuid
+            }
+        });
+
+        if (!barangCabang) {
+            return res.status(404).json({
+                status: false,
+                message: "Relasi barang dan cabang tidak ditemukan"
+            });
+        }
+
+        // Update data barang cabang sesuai dengan perubahan yang diinginkan
+        await barangCabang.update(req.body);
+
+        res.status(200).json({
+            status: true,
+            message: 'Barang cabang berhasil diperbarui',
+            data: barangCabang
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: error.message
+        });
+    }
+};
+
+const deleteBarangFromCabang = async (req, res) => {
+    try {
+        const { baranguuid, cabanguuid } = req.body;
+
+        // Cek apakah relasi barang dan cabang ada
+        const barangCabang = await BarangCabang.findOne({
+            where: {
+                baranguuid,
+                cabanguuid
+            }
+        });
+
+        if (!barangCabang) {
+            return res.status(404).json({
+                status: false,
+                message: "Relasi barang dan cabang tidak ditemukan"
+            });
+        }
+
+        // Hapus relasi barang dan cabang
+        await barangCabang.destroy();
+
+        res.status(200).json({
+            status: true,
+            message: 'Barang berhasil dihapus dari cabang'
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: error.message
+        });
+    }
+};
 
 
 
@@ -199,6 +384,11 @@ module.exports = {
     getBarangByUuid,
     createBarang,
     updateBarang,
-    deleteBarang
+    deleteBarang,
+    getBarangCabang,
+    getBarangCabangAdmin,
+    addBarangToCabang,
+    updateBarangCabang,
+    deleteBarangFromCabang
     
 }

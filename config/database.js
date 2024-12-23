@@ -1,6 +1,6 @@
 const { Sequelize } = require('sequelize');
 
-const db = new Sequelize('kasirkujs', 'root', '', {
+const db = new Sequelize('kasirjsbaru', 'root', '', {
   host: 'localhost',
   dialect: 'mysql',
   timezone: '+07:00',
@@ -8,3 +8,5 @@ const db = new Sequelize('kasirkujs', 'root', '', {
 });
 
 module.exports = db;
+
+//db lama 'kasirkujs'

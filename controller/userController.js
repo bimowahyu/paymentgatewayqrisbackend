@@ -51,6 +51,13 @@ const { where } = require('sequelize');
 
 
   exports.createUser = async (req, res) => {
+    const user = req.user;
+    if (!["admin", "superadmin"].includes(user.role)) {
+      return res.status(403).json({
+        status: 403,
+        message: "Access forbidden. Only admins or superadmins can access this data.",
+      });
+    }
     const { username, password, confpassword, role, cabanguuid } = req.body;
 
     try {
@@ -61,6 +68,12 @@ const { where } = require('sequelize');
 
       if (!['superadmin', 'admin', 'kasir'].includes(role)) {
         return res.status(400).json({ message: 'Invalid role' });
+      }
+      if (user.role === "admin" && role !== "kasir") {
+        return res.status(403).json({
+          status: 403,
+          message: "Admins are only allowed to create users with the 'kasir' role.",
+        });
       }
       let cabang;
       if (role !== 'superadmin') {
@@ -139,3 +152,40 @@ const { where } = require('sequelize');
           return res.status(500).json(error.message)
       }
   }
+  exports.updateByUser = async (req, res) => {
+    try {
+      const { uuid } = req.params;
+      const { password, confpassword } = req.body;
+  
+      // Cari pengguna berdasarkan UUID
+      const user = await User.findOne({ where: { uuid } });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      // Validasi password
+      if (password && password !== confpassword) {
+        return res.status(400).json({ message: 'Password and confirm password do not match' });
+      }
+  
+      // Hash password jika ada pembaruan password
+      const hashedPassword = password ? await argon2.hash(password) : undefined;
+  
+      // Siapkan data yang akan diperbarui
+      const updatedData = {
+        password: hashedPassword || user.password, // Tetap gunakan password lama jika tidak ada yang baru
+      };
+  
+      // Update data user di database
+      await User.update(updatedData, { where: { uuid } });
+  
+      return res.status(200).json({
+        message: 'User updated successfully',
+        status: 200,
+      });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return res.status(500).json({ message: error.message });
+    }
+  };
+  

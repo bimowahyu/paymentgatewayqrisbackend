@@ -16,8 +16,10 @@ const laporan = require('./routes/laporanRoutes')
 const TIMEZONE = "Asia/Jakarta";
 const cors = require('cors');
 const path = require('path');
+const { setupAssociations } = require('./models/associations');
 
 
+setupAssociations();
 const app = express()
 
 const SESS_SECRET = "qwertysaqdunasndjwnqnkndklawkdwk";
@@ -29,8 +31,22 @@ const store = new SequelizeStore({
 // (async() => {
 //    await db.sync();
 // })();
+// app.use(cors({
+//     origin: 'http://localhost:3000',
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+//     credentials: true
+// }));
+const allowedOrigins = ['http://localhost:3000', 'http://192.168.100.18:3000'];
+
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true); 
+        } else {
+            callback(new Error('Not allowed by CORS')); 
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true

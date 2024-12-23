@@ -50,6 +50,15 @@ Content-Type: application/json
     "password": "12345"
 }
 ###
+post http://192.168.100.18:5000/login
+Content-Type: application/json
+
+{
+    "username": "kasir",
+    "password": "12345"
+}
+
+###
 post http://localhost:5000/login
 Content-Type: application/json
 
@@ -60,7 +69,7 @@ Content-Type: application/json
 
 
 ###
-get http://localhost:5000/me
+get http://192.168.100.18:5000/me
 
 ###
 delete http://localhost:5000/logout
@@ -218,3 +227,38 @@ get http://localhost:5000/rekapharianuser?tanggal=2024-12-04
 
 ###
 get http://localhost:5000/rekapharianuser?tanggal=2024-12-19
+
+###
+put http://192.168.100.18:5000/updateuser/me/94e861b3-2af5-447a-91f5-bb285c6f7a3b
+Content-Type: application/json
+
+{
+  "password":"12345",
+  "confpassword":"12345"
+}
+
+###
+post http://192.168.100.18:5000/createbarangcabang
+Content-Type: application/json
+
+{
+  "baranguuid":"0dca2395-7e4e-437f-a46f-976d67691a43",
+  "cabanguuid":"bb88b401-f02f-4ff9-8b7b-68826173eef7"
+}
+
+###
+POST http://192.168.100.18:5000/createtransaksi
+Content-Type: application/json
+
+{
+  "pembayaran": "cash",
+  "items": [
+    {
+      "baranguuid": "0dca2395-7e4e-437f-a46f-976d67691a43",
+      "jumlahbarang": 5
+    }
+  ]
+}
+
+###
+get http://localhost:5000/barangcabang
