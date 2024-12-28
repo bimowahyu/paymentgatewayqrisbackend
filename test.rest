@@ -34,7 +34,7 @@ Content-Type: application/json
 }
 
 ###
-post http://localhost:5000/login
+post http://192.168.100.18:5000/login
 Content-Type: application/json
 
 {
@@ -42,7 +42,7 @@ Content-Type: application/json
     "password": "12345"
 }
 ###
-post http://localhost:5000/login
+post http://192.168.100.18:5000/login
 Content-Type: application/json
 
 {
@@ -254,11 +254,14 @@ Content-Type: application/json
   "pembayaran": "cash",
   "items": [
     {
-      "baranguuid": "0dca2395-7e4e-437f-a46f-976d67691a43",
-      "jumlahbarang": 5
+      "baranguuid": "65df3e31-1b4a-4227-9735-7e1fdcdca525",
+      "jumlahbarang": 1
     }
   ]
 }
 
 ###
 get http://localhost:5000/barangcabang
+
+###
+get http://http://192.168.100.18:5000/getusercabang

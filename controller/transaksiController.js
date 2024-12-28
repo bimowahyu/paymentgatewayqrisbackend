@@ -416,7 +416,7 @@ exports.getTransaksiCabang = async (req,res) => {
 
 //--------------TRANSAKSI STATUS NOTIFIKASI--------//
 
-//------------TRANSAKSI-------------//
+//------------TRANSAKSI QRIS-------------//
 exports.createTransaksi = async (req, res) => {
   const t = await db.transaction();
 
@@ -565,12 +565,12 @@ exports.createTransaksi = async (req, res) => {
 //         message: "Silahkan login terlebih dahulu",
 //       });
 //     }
-        // if (user.role !== 'kasir') {
-        //   return res.status(403).json({
-        //     status: false,
-        //     message: "Anda tidak memiliki akses untuk melakukan transaksi",
-        //   });
-        // }
+//         if (user.role !== 'kasir') {
+//           return res.status(403).json({
+//             status: false,
+//             message: "Anda tidak memiliki akses untuk melakukan transaksi",
+//           });
+//         }
 //     // Validasi input
 //     if (!pembayaran || !items || !Array.isArray(items) || items.length === 0) {
 //       return res.status(400).json({

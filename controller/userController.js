@@ -48,7 +48,41 @@ const { where } = require('sequelize');
           res.status(500).json(error.message)
       }
   }
-
+exports.getUserCabang = async (req,res) => {
+  try {
+    const user = req.user;
+    if(!["admin","superadmin"].includes(user.role)){
+      return res.status(403).json({
+        status: 403,
+        message: "Access forbidden. Only admins or superadmins can access this data.",
+      })
+    }
+    let whereClause = {};
+    if (user.role === "admin") {
+      whereClause = { cabanguuid: user.cabanguuid };
+    }
+    const getUserCabang = await User.findAll({
+      where: whereClause,
+      attributes: ['uuid', 'username', 'role', 'cabanguuid'],
+      include: [{
+        model: Cabang,
+        attributes: ['uuid', 'namacabang']
+      }]
+    })
+    return res.status(200).json({
+      status: true,
+      message: "Data user berhasil diambil",
+      data: getUserCabang
+    });
+    
+  } catch (error) {
+    console.error("Get User Cabang Error:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Terjadi kesalahan pada server",
+    });
+  }
+}
 
   exports.createUser = async (req, res) => {
     const user = req.user;
@@ -144,7 +178,7 @@ const { where } = require('sequelize');
             return res.status(404).json('user not found')
           }
           await User.destroy({where: {uuid}});
-          return res.status(200).json({
+          return res.status(203).json({
             message: 'User deleted successfully',
             status: 203
           })
@@ -156,27 +190,17 @@ const { where } = require('sequelize');
     try {
       const { uuid } = req.params;
       const { password, confpassword } = req.body;
-  
-      // Cari pengguna berdasarkan UUID
       const user = await User.findOne({ where: { uuid } });
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-  
-      // Validasi password
       if (password && password !== confpassword) {
         return res.status(400).json({ message: 'Password and confirm password do not match' });
       }
-  
-      // Hash password jika ada pembaruan password
       const hashedPassword = password ? await argon2.hash(password) : undefined;
-  
-      // Siapkan data yang akan diperbarui
       const updatedData = {
-        password: hashedPassword || user.password, // Tetap gunakan password lama jika tidak ada yang baru
+        password: hashedPassword || user.password, 
       };
-  
-      // Update data user di database
       await User.update(updatedData, { where: { uuid } });
   
       return res.status(200).json({

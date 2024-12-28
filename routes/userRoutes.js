@@ -2,6 +2,7 @@ const express = require('express')
 const {
     getUser,
     getUserByUuid,
+    getUserCabang,
     createUser,
     updateUser,
     deleteUser,
@@ -12,7 +13,8 @@ const { verifyUser, adminOnly,superAdminOnly } = require('../middleware/userMidd
 
 const router = express.Router()
 
-router.get('/getuser',verifyUser,getUser)
+router.get('/getuser',verifyUser,superAdminOnly,getUser)
+router.get('/getusercabang',verifyUser,adminOnly,getUserCabang)
 router.get('/getuser/:uuid',verifyUser,getUserByUuid)
 router.post('/createuser',verifyUser,createUser)
 router.put('/updateuser/:uuid',verifyUser,updateUser)
