@@ -63,7 +63,7 @@ post http://localhost:5000/login
 Content-Type: application/json
 
 {
-    "username": "kasir",
+    "username": "admin",
     "password": "12345"
 }
 
@@ -93,7 +93,11 @@ get http://localhost:5000/cabang
 
 
 ###
-get http://localhost:5000/kategori
+get http://192.168.100.18:5000/kategori
+
+
+###
+delete http://192.168.100.18:5000/deletekategori/37a3702c-db6d-456b-9a5e-01fd1a10bb57
 
 ###
 post http://localhost:5000/createkategori
@@ -206,7 +210,7 @@ get http://localhost:5000/transaksi/226c33b1-97cc-48d7-b35b-954d339afacc
 
 //api for superadmin(allcabang)
 ###
-get http://localhost:5000/gettransaksi
+get http://192.168.100.18:5000/gettransaksi
 
 //api for rekap user
 ###
@@ -247,11 +251,11 @@ Content-Type: application/json
 }
 
 ###
-POST http://192.168.100.18:5000/createtransaksi
+POST http://192.168.100.18:5000/createtransaksicabang
 Content-Type: application/json
 
 {
-  "pembayaran": "cash",
+  "pembayaran": "qris",
   "items": [
     {
       "baranguuid": "65df3e31-1b4a-4227-9735-7e1fdcdca525",
@@ -261,7 +265,7 @@ Content-Type: application/json
 }
 
 ###
-get http://localhost:5000/barangcabang
+get http://192.168.100.18:5000/barangcabang
 
 ###
 get http://http://192.168.100.18:5000/getusercabang

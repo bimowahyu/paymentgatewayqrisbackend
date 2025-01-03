@@ -7,13 +7,17 @@ const {getBarang,getBarangByUuid,
        addBarangToCabang,
        updateBarangCabang,
        deleteBarangFromCabang,
-       getBarangCabangAdmin
+       getBarangCabangAdmin,
+       getBarangCabangByRole,
+    getCabangByRole
     } = require('../controller/barangController')
 const { verifyUser, adminOnly, superAdminOnly}  = require('../middleware/userMiddleware')
 
 const router = express.Router()
 
 //-----set barangcabang
+router.get('/barangcabangbyrole', verifyUser, getBarangCabangByRole);
+router.get('/cabangbyrole', verifyUser, getCabangByRole);
 router.get('/barangcabangadmin',verifyUser ,getBarangCabangAdmin)
 router.get('/barangcabang',verifyUser ,getBarangCabang)
 router.get('/barangcabang/:uuid',verifyUser ,getBarangCabang)

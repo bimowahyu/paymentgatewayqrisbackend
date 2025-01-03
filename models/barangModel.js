@@ -20,7 +20,7 @@ const Barang = db.define('Barang', {
   },
   kategoriuuid: {
     type: DataTypes.UUID,
-    allowNull: false,
+    allowNull: true,
   },
   foto: {
     type: DataTypes.TEXT,

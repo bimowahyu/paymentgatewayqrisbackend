@@ -6,6 +6,134 @@ const fs = require('fs');
 const path = require('path');
 const Cabang = require('../models/cabangModel');
 
+const getBarangCabangByRole = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return res.status(401).json({
+                status: false,
+                message: "Silahkan login terlebih dahulu"
+            });
+        }
+
+        let response;
+        
+        // If superadmin, get all products from all branches
+        if (user.role === 'superadmin') {
+            response = await BarangCabang.findAll({
+                attributes: ["baranguuid", "cabanguuid"],
+                include: [
+                    {
+                        model: Barang,
+                        attributes: ["uuid", "namabarang", "harga", "foto", "kategoriuuid"],
+                        include: [
+                            {
+                                model: Kategori,
+                                attributes: ["uuid", "namakategori"],
+                            },
+                        ],
+                    },
+                    {
+                        model: Cabang,
+                        attributes: ["uuid", "namacabang"],
+                    },
+                ],
+            });
+        } 
+        // If admin, only get products from their branch
+        else if (user.role === 'admin') {
+            response = await BarangCabang.findAll({
+                where: {
+                    cabanguuid: user.cabanguuid
+                },
+                attributes: ["baranguuid", "cabanguuid"],
+                include: [
+                    {
+                        model: Barang,
+                        attributes: ["uuid", "namabarang", "harga", "foto", "kategoriuuid"],
+                        include: [
+                            {
+                                model: Kategori,
+                                attributes: ["uuid", "namakategori"],
+                            },
+                        ],
+                    },
+                    {
+                        model: Cabang,
+                        attributes: ["uuid", "namacabang"],
+                    },
+                ],
+            });
+        } else {
+            return res.status(403).json({
+                status: false,
+                message: "Unauthorized access"
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "Berhasil mendapatkan data barang cabang",
+            data: response,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: error.message,
+        });
+    }
+};
+
+// Modified version of getCabang to handle role-based access
+const getCabangByRole = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return res.status(401).json({
+                status: false,
+                message: "Silahkan login terlebih dahulu"
+            });
+        }
+
+        let response;
+        
+        // Superadmin can see all branches
+        if (user.role === 'superadmin') {
+            response = await Cabang.findAll({
+                attributes: ['uuid', 'namacabang']
+            });
+        } 
+        // Admin can only see their branch
+        else if (user.role === 'admin') {
+            response = await Cabang.findOne({
+                where: {
+                    uuid: user.cabanguuid
+                },
+                attributes: ['uuid', 'namacabang']
+            });
+            // Convert single object to array for consistent frontend handling
+            response = response ? [response] : [];
+        } else {
+            return res.status(403).json({
+                status: false,
+                message: "Unauthorized access"
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "Berhasil mendapatkan data cabang",
+            data: response
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: error.message
+        });
+    }
+};
 const getBarangCabangAdmin = async (req, res) => {
     try {
       const response = await BarangCabang.findAll({
@@ -157,30 +285,28 @@ const updateBarangCabang = async (req, res) => {
 
 const deleteBarangFromCabang = async (req, res) => {
     try {
-        const { baranguuid, cabanguuid } = req.body;
-
-        // Cek apakah relasi barang dan cabang ada
+        const { uuid } = req.params;
         const barangCabang = await BarangCabang.findOne({
             where: {
-                baranguuid,
-                cabanguuid
+                baranguuid: uuid 
             }
         });
-
+        console.log('Params:', req.params);
+        console.log('Body:', req.body);
+        
         if (!barangCabang) {
             return res.status(404).json({
                 status: false,
                 message: "Relasi barang dan cabang tidak ditemukan"
             });
         }
-
-        // Hapus relasi barang dan cabang
         await barangCabang.destroy();
 
         res.status(200).json({
             status: true,
             message: 'Barang berhasil dihapus dari cabang'
         });
+        
     } catch (error) {
         res.status(500).json({
             status: false,
@@ -389,6 +515,8 @@ module.exports = {
     getBarangCabangAdmin,
     addBarangToCabang,
     updateBarangCabang,
-    deleteBarangFromCabang
+    deleteBarangFromCabang,
+    getBarangCabangByRole,
+    getCabangByRole 
     
 }

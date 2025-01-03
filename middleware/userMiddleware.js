@@ -32,6 +32,7 @@ exports.verifyUser = async (req, res, next) => {
 
     req.user = req.session.user;
     req.user = user;
+    
     next();
 
   } catch (error) {

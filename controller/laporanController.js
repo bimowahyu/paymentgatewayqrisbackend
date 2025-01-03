@@ -9,7 +9,7 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 
-// Shared function untuk konsistensi filter
+
 const getSuccessWhereConditions = (additionalConditions = {}) => {
   return {
     status_pembayaran: { [Op.in]: ['success', 'settlement'] },
@@ -21,8 +21,6 @@ exports.chartLaporan = async (req, res) => {
   try {
     const userRole = req.user.role;
     const userCabangUuid = req.user.cabanguuid;
-
-    // Base where clause dengan filter yang konsisten
     const whereClause = {
       ...getSuccessWhereConditions(),
       ...(userRole === 'admin' ? { '$User.cabanguuid$': userCabangUuid } : {})
@@ -53,16 +51,12 @@ exports.chartLaporan = async (req, res) => {
         }
       ]
     });
-
-    // Fungsi untuk menghitung total yang konsisten
     const calculateTotal = (transactions) => {
       return transactions.reduce((acc, trans) => {
         const amount = parseFloat(trans.totaljual);
         return acc + (isNaN(amount) ? 0 : amount);
       }, 0);
     };
-
-    // Filter dan kalkulasi yang konsisten
     const transaksiCash = transaksi.filter(trans => trans.pembayaran === 'cash');
     const transaksiQris = transaksi.filter(trans => trans.pembayaran === 'qris');
 

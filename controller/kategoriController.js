@@ -1,4 +1,5 @@
 const Kategori = require('../models/kategoriModel')
+const Barang = require('../models/barangModel')
 
 const getKategori = async(req,res) => {
     try {
@@ -57,57 +58,58 @@ const createKategori = async (req,res) => {
     }
 }
 
-const updateKategori = async (req,res) => {
+const updateKategori = async (req, res) => {
     try {
-        const{uuid} = req.params;
-        const kategori = await Kategori.findOne({
-            where:{
-                uuid
-            }
-        })
-        if(!kategori){
-            res.status(404).json({message:'Data tidak di temukan'})
-        }
-        let updatedFields = []
-        if(namakategori)updatedFields.namakategori = namakategori
-        await Kategori.update(
-            updatedFields,{where: {
-                uuid
-            }}
-        )
-        res.status(200).json({
-            status:200,
-            message:'succes updated data'
-        })
-    } catch (error) {
-        res.status(500).json(error.message)
-    }
-}
+        const { uuid } = req.params;
+        const { namakategori } = req.body;
 
-const deleteKategori = async (req,res) => {
-    try {
-        const {uuid} = req.params
         const kategori = await Kategori.findOne({
-            where:{
-                uuid
-            }
-        })
-        if(!kategori){
-            res.status(404).json('Data tidak ditemukan')
+            where: { uuid },
+        });
+        if (!kategori) {
+            return res.status(404).json({ message: 'Data tidak ditemukan' });
         }
-        await Kategori.destroy({
-            where:{
-                uuid
-            }
-        })
+
+        await Kategori.update(
+            { namakategori },
+            { where: { uuid } }
+        );
+
         res.status(200).json({
-            status:200,
-            message:'succes delete data'
-        })
+            status: 200,
+            message: 'Berhasil memperbarui data',
+        });
     } catch (error) {
-        res.status(500).json(error.message)
+        res.status(500).json(error.message);
     }
-}
+};
+
+
+const deleteKategori = async (req, res) => {
+    try {
+        const { uuid } = req.params;
+
+        await Barang.update(
+            { kategoriuuid: null },
+            { where: { kategoriuuid: uuid } }
+        );
+
+        const kategori = await Kategori.findOne({ where: { uuid } });
+        if (!kategori) {
+            return res.status(404).json({ message: 'Data tidak ditemukan' });
+        }
+
+        await Kategori.destroy({ where: { uuid } });
+
+        res.status(200).json({
+            status: 200,
+            message: 'Berhasil menghapus data',
+        });
+    } catch (error) {
+        res.status(500).json(error.message);
+    }
+};
+
 
 module.exports ={
     getKategori,
