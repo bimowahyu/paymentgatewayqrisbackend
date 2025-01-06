@@ -3,14 +3,14 @@ const midtransClient = require("midtrans-client");
 
 
 const snap = new midtransClient.Snap({
-  isProduction: true, // Ubah ke true jika production
+  isProduction: false, // Ubah ke true jika production
 
   //testing key
-  // serverKey: process.env.SERVERKEY,
-  // clientKey: process.env.CLIENTKEY,
+  serverKey: process.env.SERVERKEY,
+  clientKey: process.env.CLIENTKEY,
   //prod
-  serverKey: process.env.SERVERKEYPROD,
-  clientKey: process.env.CLIENTKEYPROD
+  //serverKey: process.env.SERVERKEYPROD,
+  //clientKey: process.env.CLIENTKEYPROD
   
 });
 // console.log("Server Key:", process.env.SERVERKEY);

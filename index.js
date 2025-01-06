@@ -13,6 +13,7 @@ const kategoriRoutes = require('./routes/kategoriRoutes')
 const transaksiRoutes = require('./routes/transaksiRoutes')
 const userRoutes = require('./routes/userRoutes')
 const laporan = require('./routes/laporanRoutes')
+const uploadRoutes = require('./routes/uploadRoutes')
 const TIMEZONE = "Asia/Jakarta";
 const cors = require('cors');
 const path = require('path');
@@ -37,7 +38,7 @@ const store = new SequelizeStore({
 //     allowedHeaders: ['Content-Type', 'Authorization'],
 //     credentials: true
 // }));
-const allowedOrigins = ['http://localhost:3000', 'http://192.168.1.20:3000','http://192.168.100.18:3000','http://192.168.100.18:5000','http://192.168.1.5:3000'];
+const allowedOrigins = ['http://localhost:3000', 'http://192.168.1.20:3000','http://192.168.100.18:3000','http://192.168.100.18:5000','http://192.168.1.5:3000','http://192.168.100.19:3000'];
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -85,6 +86,7 @@ app.use(kategoriRoutes)
 app.use(transaksiRoutes)
 app.use(userRoutes)
 app.use(laporan)
+app.use(uploadRoutes)
 
 app.get('/', (req, res) => {
     res.send('berhasil');

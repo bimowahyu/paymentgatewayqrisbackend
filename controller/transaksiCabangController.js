@@ -158,7 +158,7 @@ exports.createTransaksiCabang = async (req, res) => {
     }
   };
   
-  //---------------TRANSAKSI CABANG BANYAK OPSI-----------------
+  //---------------TRANSAKSI CABANG BANYAK OPSI  SNAP-----------------
 // exports.createTransaksiCabang = async (req, res) => {
 //   const t = await db.transaction();
 
