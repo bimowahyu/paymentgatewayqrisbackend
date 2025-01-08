@@ -6,10 +6,13 @@ const getKategori = async(req,res) => {
         const response = await Kategori.findAll({
             attributes:['uuid','namakategori','createdAt','updatedAt']
         })
+        const calculateKategori = (KategoriData) => KategoriData.length;
+        const totalKategori = calculateKategori(response)
         res.status(200).json({
             status: 200,
             message:'success',
-            data: response
+            data: response,
+            total: totalKategori
         })
     } catch (error) {
         res.status(500).json(error.message)

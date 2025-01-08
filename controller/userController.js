@@ -103,11 +103,25 @@ exports.getUserCabang = async (req,res) => {
       if (!['superadmin', 'admin', 'kasir'].includes(role)) {
         return res.status(400).json({ message: 'Invalid role' });
       }
-      if (user.role === "admin" && role !== "kasir") {
-        return res.status(403).json({
-          status: 403,
-          message: "Admins are only allowed to create users with the 'kasir' role.",
-        });
+      // if (user.role === "admin" && role !== "kasir") {
+      //   return res.status(403).json({
+      //     status: 403,
+      //     message: "Admins are only allowed to create users with the 'kasir' role.",
+      //   });
+      // }
+      if (user.role === 'admin') {
+        if (role !== 'kasir') {
+          return res.status(403).json({
+            status: 403,
+            message: "Admins are only allowed to create users with the 'kasir' role."
+          });
+        }
+        if (user.cabanguuid !== cabanguuid) {
+          return res.status(403).json({
+            status: 403,
+            message: "Admins can only create 'kasir' users within their own branch."
+          });
+        }
       }
       let cabang;
       if (role !== 'superadmin') {

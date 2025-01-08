@@ -326,10 +326,14 @@ const getBarang = async(req,res)=>{
                 attributes:['namakategori']
                 }
         })
+        const calculateBarang = (BarangData) => BarangData.length;
+        const totalBarang = calculateBarang(response);
+
         res.status(200).json({
             status: 200,
             message: 'succes',
-            data: response
+            data: response,
+            total: totalBarang
         })  
     } catch (error) {
         res.status(500).json(error.message)

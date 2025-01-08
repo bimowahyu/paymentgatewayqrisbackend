@@ -120,7 +120,7 @@ Content-Type: application/json
 }
 
 ###
-get http://localhost:5000/barang
+get http://192.168.100.18:5000/barang
 
 ###
 post http://localhost:5000/createtransaksi
@@ -199,7 +199,7 @@ get http://localhost:5000/getuser
 get http://localhost:5000/laporan?month=2024-12
 
 ###
-get http://localhost:5000/chartlaporan
+get http://192.168.100.18:5000/chartlaporan
 ###
 get http://localhost:5000/laporandetail
 

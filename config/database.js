@@ -10,4 +10,13 @@ const db = new Sequelize('kasirjsbaru', 'root', '', {
 module.exports = db;
 
 //db lama 'kasirkujs'
-//supabasepassword K@s1r123454444333
+
+//deploy
+// Hostname:
+// localhost
+// Database:
+// brabsenm_kasir
+// Username:
+// brabsenm_kasir
+// Password:
+// E2NUUQGaZWkQPneWQhQ4
