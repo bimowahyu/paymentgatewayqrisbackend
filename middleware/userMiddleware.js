@@ -3,7 +3,6 @@ const Cabang = require('../models/cabangModel')
 
 exports.verifyUser = async (req, res, next) => {
   try {
-    // Check if session and user exist
     if (!req.session?.user?.uuid) {
       return res.status(401).json({
         status: false,
@@ -46,7 +45,6 @@ exports.verifyUser = async (req, res, next) => {
 
 exports.adminOnly = async (req, res, next) => {
   try {
-    // Use req.user from verifyUser middleware
     if (!req.user) {
       return res.status(401).json({
         status: false,

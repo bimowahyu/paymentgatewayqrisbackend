@@ -32,26 +32,26 @@ const store = new SequelizeStore({
 // (async() => {
 //    await db.sync();
 // })();
-// app.use(cors({
-//     origin: 'http://localhost:3000',
-//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//     allowedHeaders: ['Content-Type', 'Authorization'],
-//     credentials: true
-// }));
-const allowedOrigins = ['http://localhost:3000', 'http://192.168.1.20:3000','http://192.168.100.18:3000','http://192.168.100.18:5000','http://192.168.1.5:3000','http://192.168.100.19:3000'];
-
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true); 
-        } else {
-            callback(new Error('Not allowed by CORS')); 
-        }
-    },
+    origin: true,//'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
+// const allowedOrigins = ['http://localhost:3000', 'http://192.168.1.20:3000','http://192.168.100.18:3000','http://192.168.100.18:5000','http://192.168.1.5:3000','http://192.168.100.19:3000'];
+
+// app.use(cors({
+//     origin: (origin, callback) => {
+//         if (!origin || allowedOrigins.includes(origin)) {
+//             callback(null, true); 
+//         } else {
+//             callback(new Error('Not allowed by CORS')); 
+//         }
+//     },
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+//     credentials: true
+// }));
 app.use(fileUpload());
 
 
