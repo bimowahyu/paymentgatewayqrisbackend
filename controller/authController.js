@@ -3,7 +3,7 @@ const Cabang = require('../models/cabangModel')
 const argon2 = require('argon2');
 const { Model } = require('sequelize');
 
-const login = async (req, res) => {
+ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -55,7 +55,7 @@ const login = async (req, res) => {
   }
 };
 
-const me = async (req, res) => {
+exports.me = async (req, res) => {
   if (!req.session.user) {
       return res.status(401).json({ msg: "Mohon login ke akun Anda!" });
   }
@@ -83,15 +83,10 @@ const me = async (req, res) => {
 };
 
 
-const logOut = async(req, res)=>{
+exports.logOut = async(req, res)=>{
     req.session.destroy((err) => {
         if (err) return res.status(400).json({ msg: "Tidak dapat logout" });
         res.status(200).json({ msg: "Anda telah logout" });
     });
 }
 
-module.exports = {
-    login,
-    me,
-    logOut
-}

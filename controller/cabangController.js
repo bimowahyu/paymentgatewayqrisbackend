@@ -1,6 +1,6 @@
 const Cabang = require('../models/cabangModel');
 
-const getCabang = async(req,res) => {
+exports.getCabang = async(req,res) => {
     try {
         const response = await Cabang.findAll({
             attributes:['uuid','namacabang','alamat','koordinat','createdAt','updatedAt']
@@ -22,7 +22,7 @@ const getCabang = async(req,res) => {
     }
 }
 
-const getCabangByUuid = async(req,res) => {
+exports.getCabangByUuid = async(req,res) => {
     try {
         const {uuid} = req.params;
         const response = await Cabang.findOne({
@@ -39,7 +39,7 @@ const getCabangByUuid = async(req,res) => {
     }
 }
 
-const createCabang = async (req,res) => {
+exports.createCabang = async (req,res) => {
     try {
         const { namacabang, alamat, latitude, longitude } = req.body
         if(!namacabang || !alamat || !latitude || !longitude){
@@ -61,7 +61,7 @@ const createCabang = async (req,res) => {
     }
 }
 
-const updateCabang = async (req,res) =>{
+exports.updateCabang = async (req,res) =>{
     try {
         const {uuid} = req.params;
         const {namacabang, alamat, latitude, longitude} = req.body
@@ -88,7 +88,7 @@ const updateCabang = async (req,res) =>{
     }
 }
 
-const deleteCabang = async(req,res) =>{
+exports.deleteCabang = async(req,res) =>{
     try {
         const {uuid} = req.params
         const cabang = await Cabang.findOne({
@@ -111,10 +111,3 @@ const deleteCabang = async(req,res) =>{
     }
 }
 
-module.exports = {
-    getCabang,
-    getCabangByUuid,
-    createCabang,
-    updateCabang,
-    deleteCabang
-}

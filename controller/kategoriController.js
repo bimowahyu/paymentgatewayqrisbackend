@@ -1,7 +1,7 @@
 const Kategori = require('../models/kategoriModel')
 const Barang = require('../models/barangModel')
 
-const getKategori = async(req,res) => {
+exports.getKategori = async(req,res) => {
     try {
         const response = await Kategori.findAll({
             attributes:['uuid','namakategori','createdAt','updatedAt']
@@ -19,7 +19,7 @@ const getKategori = async(req,res) => {
     }
 }
 
-const getKategoriByUuid = async (req,res) => {
+exports.getKategoriByUuid = async (req,res) => {
     try {
         const {uuid} = req.params;
         const response = await Kategori.findOne({
@@ -42,7 +42,7 @@ const getKategoriByUuid = async (req,res) => {
     }
 }
 
-const createKategori = async (req,res) => {
+exports.createKategori = async (req,res) => {
     try {
         const {namakategori} = req.body;
         if(!namakategori){
@@ -61,7 +61,7 @@ const createKategori = async (req,res) => {
     }
 }
 
-const updateKategori = async (req, res) => {
+exports.updateKategori = async (req, res) => {
     try {
         const { uuid } = req.params;
         const { namakategori } = req.body;
@@ -88,7 +88,7 @@ const updateKategori = async (req, res) => {
 };
 
 
-const deleteKategori = async (req, res) => {
+exports.deleteKategori = async (req, res) => {
     try {
         const { uuid } = req.params;
 
@@ -113,11 +113,3 @@ const deleteKategori = async (req, res) => {
     }
 };
 
-
-module.exports ={
-    getKategori,
-    getKategoriByUuid,
-    createKategori,
-    updateKategori,
-    deleteKategori
-}

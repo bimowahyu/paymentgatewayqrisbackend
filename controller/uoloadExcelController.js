@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const uploadBarang = async (req, res) => {
+exports.uploadBarang = async (req, res) => {
     try {
         if(!req.files || Object.keys(req.files).length === 0) {
             return res.status(400).json({ msg: 'No files were uploaded.' });
@@ -59,4 +59,3 @@ const uploadBarang = async (req, res) => {
     }
 }
 
-module.exports = {uploadBarang}

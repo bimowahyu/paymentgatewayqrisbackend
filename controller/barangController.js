@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const Cabang = require('../models/cabangModel');
 
-const getBarangCabangByRole = async (req, res) => {
+exports.getBarangCabangByRole = async (req, res) => {
     try {
         const user = req.user;
 
@@ -85,8 +85,7 @@ const getBarangCabangByRole = async (req, res) => {
     }
 };
 
-// Modified version of getCabang to handle role-based access
-const getCabangByRole = async (req, res) => {
+exports.getCabangByRole = async (req, res) => {
     try {
         const user = req.user;
 
@@ -98,8 +97,6 @@ const getCabangByRole = async (req, res) => {
         }
 
         let response;
-        
-        // Superadmin can see all branches
         if (user.role === 'superadmin') {
             response = await Cabang.findAll({
                 attributes: ['uuid', 'namacabang']
@@ -113,7 +110,6 @@ const getCabangByRole = async (req, res) => {
                 },
                 attributes: ['uuid', 'namacabang']
             });
-            // Convert single object to array for consistent frontend handling
             response = response ? [response] : [];
         } else {
             return res.status(403).json({
@@ -134,7 +130,7 @@ const getCabangByRole = async (req, res) => {
         });
     }
 };
-const getBarangCabangAdmin = async (req, res) => {
+exports.getBarangCabangAdmin = async (req, res) => {
     try {
       const response = await BarangCabang.findAll({
         attributes: ["baranguuid", "cabanguuid"],
@@ -170,7 +166,7 @@ const getBarangCabangAdmin = async (req, res) => {
   };
 
   
-const getBarangCabang = async(req, res) => {
+exports.getBarangCabang = async(req, res) => {
     try {
         const user = req.user; 
 
@@ -215,7 +211,7 @@ const getBarangCabang = async(req, res) => {
     }
 };
 
-const addBarangToCabang = async (req, res) => {
+exports.addBarangToCabang = async (req, res) => {
     try {
         const { baranguuid, cabanguuid } = req.body; 
 
@@ -248,7 +244,7 @@ const addBarangToCabang = async (req, res) => {
     }
 };
 
-const updateBarangCabang = async (req, res) => {
+exports.updateBarangCabang = async (req, res) => {
     try {
         const { baranguuid, cabanguuid } = req.body;
 
@@ -283,7 +279,7 @@ const updateBarangCabang = async (req, res) => {
     }
 };
 
-const deleteBarangFromCabang = async (req, res) => {
+exports.deleteBarangFromCabang = async (req, res) => {
     try {
         const { uuid } = req.params;
         const barangCabang = await BarangCabang.findOne({
@@ -317,7 +313,7 @@ const deleteBarangFromCabang = async (req, res) => {
 
 
 
-const getBarang = async(req,res)=>{
+exports.getBarang = async(req,res)=>{
     try {
         const response = await Barang.findAll({
             attributes:['uuid','namabarang','harga','foto','kategoriuuid','createdAt'],
@@ -340,7 +336,7 @@ const getBarang = async(req,res)=>{
     }
 }
 
-const getBarangByUuid = async(req,res) => {
+exports.getBarangByUuid = async(req,res) => {
     const { uuid } = req.params
     try {
         const response = await Barang.findOne({
@@ -360,7 +356,7 @@ const getBarangByUuid = async(req,res) => {
     }
 }
 
-const createBarang = async (req, res) => {
+exports.createBarang = async (req, res) => {
     try {
         if (!req.files || Object.keys(req.files).length === 0) {
             return res.status(400).json({ msg: "No File Uploaded" });
@@ -421,7 +417,7 @@ const createBarang = async (req, res) => {
     }
 };
 
-const updateBarang = async (req, res) => {
+exports.updateBarang = async (req, res) => {
     try {
         const { uuid } = req.params; 
         const { namabarang, harga, kategoriuuid } = req.body; 
@@ -486,7 +482,7 @@ const updateBarang = async (req, res) => {
     }
 };
 
-const deleteBarang = async (req, res) => {
+exports.deleteBarang = async (req, res) => {
     try {
         const { uuid } = req.params;
         const barang = await Barang.findOne({ where: { uuid } });
@@ -508,19 +504,3 @@ const deleteBarang = async (req, res) => {
     }
 };
 
-
-module.exports = {
-    getBarang,
-    getBarangByUuid,
-    createBarang,
-    updateBarang,
-    deleteBarang,
-    getBarangCabang,
-    getBarangCabangAdmin,
-    addBarangToCabang,
-    updateBarangCabang,
-    deleteBarangFromCabang,
-    getBarangCabangByRole,
-    getCabangByRole 
-    
-}
