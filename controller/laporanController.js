@@ -263,6 +263,8 @@ exports.laporan = async (req, res) => {
 
     const salesSummary = {};
     let totalPenjualan = 0;
+    let totalQRIS = 0;
+    let totalCash = 0;
 
     salesData.forEach(transaksi => {
       const cabangName = transaksi.User.Cabang.namacabang;
@@ -273,7 +275,10 @@ exports.laporan = async (req, res) => {
         if (!salesSummary[cabangName]) {
           salesSummary[cabangName] = {
             totalPenjualanCabang: 0,
-            metodePembayaran: { qris: 0, cash: 0 },
+            metodePembayaran: { 
+              qris: { count: 0, total: 0 }, 
+              cash: { count: 0, total: 0 } 
+            },
             kasir: {},
             barang: {}
           };
@@ -282,8 +287,14 @@ exports.laporan = async (req, res) => {
         salesSummary[cabangName].totalPenjualanCabang += amount;
         totalPenjualan += amount;
 
-        salesSummary[cabangName].metodePembayaran[transaksi.pembayaran]++;
+        salesSummary[cabangName].metodePembayaran[transaksi.pembayaran].count++;
+        salesSummary[cabangName].metodePembayaran[transaksi.pembayaran].total += amount;
         
+        if (transaksi.pembayaran === 'qris') {
+          totalQRIS += amount;
+        } else if (transaksi.pembayaran === 'cash') {
+          totalCash += amount;
+        }
         if (!salesSummary[cabangName].kasir[kasirName]) {
           salesSummary[cabangName].kasir[kasirName] = {
             totalTransaksi: 0,
@@ -320,6 +331,8 @@ exports.laporan = async (req, res) => {
       status: true,
       data: {
         totalPenjualanKeseluruhan: totalPenjualan,
+        totalPembayaranQRIS: totalQRIS,
+        totalPembayaranCash: totalCash,
         detailPenjualan: salesSummary
       }
     });
